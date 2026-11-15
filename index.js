@@ -5,38 +5,49 @@ export default {
     
     const REAL_SERVER = "https://novavisionhub-3.onrender.com";
 
-    // 1. Subscription check (Fake Pro)
+    // 1. Fake Pro Billing Response (Plan Check)
     if (path === "/api/billing/subscription") {
         return new Response(JSON.stringify({
             "currency": "usd",
             "isPro": true,
             "status": "active",
-            "plan": "Pro"
-        }), { headers: { "Content-Type": "application/json" } });
-    }
-
-    // 2. Billing Sync (Fake Success)
-    if (path === "/api/billing/sync") {
-        return new Response(JSON.stringify({ "status": "success" }), {
+            "plan": "Pro",
+            "expiry": "2099-12-31"
+        }), {
             headers: { "Content-Type": "application/json" }
         });
     }
 
-    // 3. Checkout Sessions (Payment Error Fix)
+    // 2. Fake Billing Sync (Backend ko lagay sync ho gaya)
+    if (path === "/api/billing/sync") {
+        return new Response(JSON.stringify({ 
+            "status": "success", 
+            "message": "Sync complete" 
+        }), {
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+
+    // 3. Fake Checkout Session (Payment Error Fix)
     if (path.includes("checkout-session") || path.includes("cakto") || path.includes("paypal")) {
         return new Response(JSON.stringify({ 
             "url": "https://nova-bypass.bhatzubair4054.workers.dev/success" 
-        }), { headers: { "Content-Type": "application/json" } });
+        }), {
+            headers: { "Content-Type": "application/json" }
+        });
     }
 
-    // Baaki sab asli server par bhej do
+    // 4. Baaki saari requests asli server par bhej do (Proxy)
     const targetUrl = new URL(path + url.search, REAL_SERVER);
+    
+    // Original headers copy karo
     const proxyRequest = new Request(targetUrl.toString(), {
         method: request.method,
         headers: request.headers,
         body: request.body
     });
 
+    // Asli server se fetch karo
     return fetch(proxyRequest);
   }
 };
