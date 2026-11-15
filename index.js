@@ -5,7 +5,7 @@ export default {
     
     const REAL_SERVER = "https://novavisionhub-3.onrender.com";
 
-    // 1. Fake Pro Billing Response (Plan Check)
+    // Fake Pro Billing Response (Plan Check)
     if (path === "/api/billing/subscription") {
         return new Response(JSON.stringify({
             "currency": "usd",
@@ -18,7 +18,7 @@ export default {
         });
     }
 
-    // 2. Fake Billing Sync
+    // Fake Billing Sync
     if (path === "/api/billing/sync") {
         return new Response(JSON.stringify({ 
             "status": "success", 
@@ -28,16 +28,16 @@ export default {
         });
     }
 
-    // 3. Fake Checkout Session (Payment Error Fix)
+    // Fake Checkout Session (Payment Error Fix)
     if (path.includes("checkout-session") || path.includes("cakto") || path.includes("paypal")) {
         return new Response(JSON.stringify({ 
-            "url": "https://nova-bypass.bhatzubair4054.workers.dev/fake-success" 
+            "url": "https://nova-bypass.bhatzubair4054.workers.dev/success" 
         }), {
             headers: { "Content-Type": "application/json" }
         });
     }
 
-    // 4. Baaki requests asli server par bhej do
+    // Baaki requests asli server par bhej do
     const targetUrl = new URL(path + url.search, REAL_SERVER);
     const proxyRequest = new Request(targetUrl.toString(), {
         method: request.method,
