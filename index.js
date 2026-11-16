@@ -38,12 +38,33 @@ export default {
         });
     }
 
-    // 4. Baaki saari requests asli server par bhej do (Proxy)
+    // 4. Free Quota Bypass (Library / AI Limits)
+    if (path.includes("/api/v1/library") || path.includes("/api/ai")) {
+        // Agar app koi limit check kare, toh hum usko fake response bhejenge
+        if (path.includes("/limits") || path.includes("/quota")) {
+            return new Response(JSON.stringify({ 
+                "allowed": true, 
+                "remaining": 999999,
+                "limit": 999999
+            }), {
+                headers: { "Content-Type": "application/json" }
+            });
+        }
+    }
+
+    // 5. Baaki saari requests asli server par bhej do (Proxy + Headers Spoofing)
     const targetUrl = new URL(path + url.search, REAL_SERVER);
     
-    // Headers copy karo
+    // Asli server ko dhoka dene ke liye headers modify karo
     const newHeaders = new Headers(request.headers);
     newHeaders.set("Host", "novavisionhub-3.onrender.com");
+    newHeaders.set("Origin", "https://novavisionhub-3.onrender.com");
+    newHeaders.set("Referer", "https://novavisionhub-3.onrender.com/");
+    
+    // User-Agent set karo (Flutter app jaisa)
+    if (!newHeaders.has("User-Agent")) {
+        newHeaders.set("User-Agent", "Dart/3.0 (dart:io)");
+    }
 
     const proxyRequest = new Request(targetUrl.toString(), {
         method: request.method,
