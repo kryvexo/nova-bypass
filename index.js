@@ -3,9 +3,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     
-    const REAL_SERVER = "https://novavisionhub-3.onrender.com";
-
-    // 1. Billing / Subscription Check (Fake Pro)
+    // 1. Fake Pro Billing Response
     if (path.includes("/api/billing/subscription")) {
         return new Response(JSON.stringify({
             "currency": "usd",
@@ -13,38 +11,67 @@ export default {
             "status": "active",
             "plan": "Pro",
             "expiry": "2099-12-31"
-        }), { headers: { "Content-Type": "application/json" } });
+        }), {
+            headers: { "Content-Type": "application/json" }
+        });
     }
 
-    // 2. Billing Sync (Fake Success)
+    // 2. Fake Billing Sync
     if (path.includes("/api/billing/sync")) {
-        return new Response(JSON.stringify({ "status": "success", "message": "Sync complete" }), {
+        return new Response(JSON.stringify({ 
+            "status": "success", 
+            "message": "Sync complete" 
+        }), {
             headers: { "Content-Type": "application/json" }
         });
     }
 
-    // 3. Checkout Session (Fake Success)
+    // 3. Fake Checkout Session (Payment Error Fix)
     if (path.includes("checkout-session") || path.includes("cakto") || path.includes("paypal")) {
-        return new Response(JSON.stringify({ "url": "https://nova-bypass.bhatzubair4054.workers.dev/success" }), {
+        return new Response(JSON.stringify({ 
+            "url": "https://nova-bypass.bhatzubair4054.workers.dev/success" 
+        }), {
             headers: { "Content-Type": "application/json" }
         });
     }
 
-    // 4. Proxy baaki requests (without spoofing Host)
-    const targetUrl = new URL(path + url.search, REAL_SERVER);
-    
-    // Sirf zaroori headers copy karo, Host mat chhedo
-    const newHeaders = new Headers();
-    if (request.headers.has("Authorization")) newHeaders.set("Authorization", request.headers.get("Authorization"));
-    if (request.headers.has("Content-Type")) newHeaders.set("Content-Type", request.headers.get("Content-Type"));
-    if (request.headers.has("User-Agent")) newHeaders.set("User-Agent", request.headers.get("User-Agent"));
+    // 4. Fake User / Auth Response (Login ke liye)
+    if (path.includes("/api/user") || path.includes("/api/auth") || path.includes("/api/account")) {
+        return new Response(JSON.stringify({
+            "id": "12345",
+            "email": "testuser@gmail.com",
+            "name": "Test User",
+            "isPro": true,
+            "credits": 999999,
+            "plan": "Pro"
+        }), {
+            headers: { "Content-Type": "application/json" }
+        });
+    }
 
-    const proxyRequest = new Request(targetUrl.toString(), {
-        method: request.method,
-        headers: newHeaders,
-        body: request.body
+    // 5. Fake Library / Assets / AI Response
+    if (path.includes("/api/v1/library") || path.includes("/api/v1/presets") || path.includes("/api/v1/extensions") || path.includes("/api/ai")) {
+        return new Response(JSON.stringify({
+            "status": "success",
+            "data": [],
+            "items": [],
+            "allowed": true,
+            "remaining": 999999,
+            "limit": 999999,
+            "message": "Success"
+        }), {
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+
+    // 6. Baaki saari requests ke liye bhi fake success bhej do
+    return new Response(JSON.stringify({
+        "status": "success",
+        "message": "Fake response from Master Backend",
+        "isPro": true,
+        "allowed": true
+    }), {
+        headers: { "Content-Type": "application/json" }
     });
-
-    return fetch(proxyRequest);
   }
 };
